@@ -1,2 +1,2 @@
 # GPU-Computing-Project
- GPU Computing Project repository
+ GPU Computing Project repository :)
