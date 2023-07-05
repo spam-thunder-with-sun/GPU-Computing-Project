@@ -60,6 +60,7 @@ void find_solution (vector<vector<bool>> &M)
             }
                 
             print_solution(vec);
+            return;
         }
     }
 
@@ -73,7 +74,8 @@ int main()
     //input/dimacs/jnh1.cnf
     //input/3sat/uf20-01.cnf
     //input/small.cnf
-    CreateMatrix *foo = new CreateMatrix("input/3sat/uf20-01.cnf", true);
+    //input/tutorial.cnf
+    CreateMatrix *foo = new CreateMatrix("input/dimacs/jnh1.cnf", true);
     if (foo->get_error()) 
         return(1);
     vector<vector<bool>> matrix = foo->get_matrix();

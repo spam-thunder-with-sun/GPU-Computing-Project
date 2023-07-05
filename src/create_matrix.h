@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <sstream>
 
 using namespace std;
 
@@ -20,55 +21,58 @@ class CreateMatrix
                 return;
             }
 
-            string line;
+            string line;                
             char c;
             int row = 0;
             int tmp;
             while(!in.eof())
             {
-                //Leggo carattere
-                in >> c;
-                switch(c)
+                //Leggo linea per linea
+                getline(in, line);
+
+                if(!line.empty())
                 {
-                    case 'c':
-                        //Commento
-                        getline(in, line);
-                        
-                        if(print)
-                            cout << line << endl;
-                        break;
-                    case 'p':
-                        //Leggo i dati del problema
-                        in >> line >> literals_ >> clauses_;
-                        if(print)
-                            cout << "Data:" << line << " literals:" << literals_ << " clauses:" << clauses_ << endl;
-
-                        //Alloco la matrice
-                        matrix_.resize(clauses_);
-                        for (int i = 0; i < clauses_; ++i)
-                            matrix_[i].resize(literals_ * 2 + 1);
-                        
-                        //Leggo il problema
-                        while(row < clauses_)
-                        {
-                            in >> tmp;
-
+                    //Copio in un stringstream
+                    istringstream ss(line);
+                    //Leggo il primo carattere della linea
+                    c = line[0];
+                    switch(c)
+                    {
+                        case 'c':
+                            //Commento
                             if(print)
+                                cout << line << endl;
+                            break;
+                        case 'p':
+                            //Dati del problema
+                            ss >> c >> line >> literals_ >> clauses_;
+                            if(print)
+                                cout << "Data:" << line << " literals:" << literals_ << " clauses:" << clauses_ << endl;
+                            //Alloco la matrice
+                            matrix_.resize(clauses_);
+                            for (int i = 0; i < clauses_; ++i)
+                                matrix_[i].resize(literals_ * 2 + 1);
+                            break;
+                        default:
+                            //Leggo il problema
+                            while(!ss.eof())
                             {
-                                if(tmp == 0)
-                                    cout << endl;
-                                else
+                                ss >> tmp;
+
+                                if(print)
                                     cout << tmp << " ";
+
+                                if(tmp == 0)
+                                {
+                                    if(print)
+                                        cout << endl;
+                                    row++;
+                                } else if(tmp > 0)
+                                    matrix_[row][tmp] = true;
+                                else if(tmp < 0)
+                                    matrix_[row][(-tmp) + literals_] = true;  
                             }
-
-                            if(tmp == 0)
-                                row++;
-                            else if(tmp > 0)
-                                matrix_[row][tmp] = true;
-                            else
-                                matrix_[row][(-tmp) + literals_] = true;
-
-                        }
+                    }
                 }
             }
 
@@ -116,7 +120,6 @@ class CreateMatrix
             }
         }
 
-    
     private:
     vector<vector<bool>> matrix_;
     int literals_ = 0;
