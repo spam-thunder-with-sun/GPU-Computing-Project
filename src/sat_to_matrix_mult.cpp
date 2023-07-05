@@ -4,7 +4,7 @@
 #include <fstream>
 #include <cmath>
 
-std::ifstream in ("input.dimacs");
+std::ifstream in ("jnh1.cnf");
 int literals = 0, clauses = 0;
 
 void print_solution(std::vector<bool> sol) {
