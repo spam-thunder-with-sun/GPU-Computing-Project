@@ -42,7 +42,7 @@ void find_solution (vector<vector<bool>> &M)
     vector<bool> vec (literals_ * 2 + 1, false);
     bool issat = false;
 
-    for (int sol = 0; sol <= (1 << literals_) - 1; ++sol) 
+    for (int sol = 0; sol <= ((unsigned long long)1 << literals_) - 1; ++sol) 
     {
 
         for (int i = 0; i < literals_; ++i) 
@@ -51,16 +51,23 @@ void find_solution (vector<vector<bool>> &M)
             vec[i + literals_ + 1] = !(vec[i + 1]);
         }
 
+        /*
+        for(int i = 1; i < vec.size(); ++i)
+        {
+            cout << vec[i] << " ";
+        }
+        cout << endl;
+        */
+
         if (sat(M, vec)) 
         {
             if(!issat)
             {
                 issat = true;
-                cout << "SAT:" << endl;
-            }
                 
+            }
+            cout << "SAT:";
             print_solution(vec);
-            return;
         }
     }
 
@@ -75,7 +82,7 @@ int main()
     //input/3sat/uf20-01.cnf
     //input/small.cnf
     //input/tutorial.cnf
-    CreateMatrix *foo = new CreateMatrix("input/dimacs/jnh1.cnf", true);
+    CreateMatrix *foo = new CreateMatrix("input/small.cnf", true);
     if (foo->get_error()) 
         return(1);
     vector<vector<bool>> matrix = foo->get_matrix();
