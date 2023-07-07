@@ -51,14 +51,6 @@ void find_solution (vector<vector<bool>> &M)
             vec[i + literals_ + 1] = !(vec[i + 1]);
         }
 
-        /*
-        for(int i = 1; i < vec.size(); ++i)
-        {
-            cout << vec[i] << " ";
-        }
-        cout << endl;
-        */
-
         if (sat(M, vec)) 
         {
             if(!issat)
