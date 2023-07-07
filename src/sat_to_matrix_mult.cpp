@@ -75,8 +75,7 @@ int main()
     //input/small.cnf
     //input/tutorial.cnf
     CreateMatrix *foo = new CreateMatrix("input/small.cnf", true);
-    if (foo->get_error()) 
-        return(1);
+    if (foo->get_error())  return(1);
     vector<vector<bool>> matrix = foo->get_matrix();
     literals_ = foo->get_literals();
     clauses_ = foo->get_clauses();
