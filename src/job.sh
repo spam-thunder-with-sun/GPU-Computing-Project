@@ -7,8 +7,8 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --time=00:05:00
 #SBATCH --job-name=SATproject
-#SBATCH --output=out.txt
-#SBATCH --error=err.txt
+#SBATCH --output=output/out.txt
+#SBATCH --error=output/err.txt
 
 make build
 

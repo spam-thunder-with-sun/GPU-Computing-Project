@@ -311,7 +311,7 @@ endif
 # Target rules
 all: build
 
-build: deviceQuery
+build: sat_to_matrix_mult
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -320,21 +320,21 @@ else
 	@echo "Sample is ready - all dependencies have been met"
 endif
 
-deviceQuery.o:deviceQuery.cpp
+sat_to_matrix_mult.o:sat_to_matrix_mult.cpp
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-deviceQuery: deviceQuery.o
+sat_to_matrix_mult: sat_to_matrix_mult.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 	$(EXEC) mkdir -p ../../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 	$(EXEC) cp $@ ../../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 
 run: build
-	$(EXEC) ./deviceQuery
+	$(EXEC) ./sat_to_matrix_mult
 
 testrun: build
 
 clean:
-	rm -f deviceQuery deviceQuery.o
-	rm -rf ../../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)/deviceQuery
+	rm -f sat_to_matrix_mult sat_to_matrix_mult.o
+	rm -rf ../../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)/sat_to_matrix_mult
 
 clobber: clean
