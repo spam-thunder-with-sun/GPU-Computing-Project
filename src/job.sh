@@ -10,6 +10,9 @@
 #SBATCH --output=output/out.txt
 #SBATCH --error=output/err.txt
 
+make preclean
 make build
 
 srun sat_to_matrix_mult
+
+make clean

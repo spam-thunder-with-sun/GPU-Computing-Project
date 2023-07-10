@@ -2,7 +2,7 @@
 #module load
 #module list
 
-rm output/*
+clear
 
 #Run your job
 sbatch job.sh
@@ -14,3 +14,6 @@ squeue -U $USER
 #sinfo
 #Cancel your job
 #scancel <jobId>
+
+cat output/err.txt
+cat output/out.txt

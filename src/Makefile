@@ -337,4 +337,7 @@ clean:
 	rm -f sat_to_matrix_mult sat_to_matrix_mult.o
 	rm -rf ../../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)/sat_to_matrix_mult
 
+preclean:
+	rm -f output/*
+
 clobber: clean

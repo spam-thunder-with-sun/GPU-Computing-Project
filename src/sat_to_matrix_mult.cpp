@@ -82,5 +82,7 @@ int main()
 
     find_solution(matrix);
 
+    cout << "Fine" << endl;
+
     return 0;
 }
