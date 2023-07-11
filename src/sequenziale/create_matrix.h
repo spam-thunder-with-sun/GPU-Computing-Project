@@ -86,7 +86,7 @@ class CreateMatrix
             error_ = false;
         }
 
-        vector<vector<int>> get_matrix() 
+        vector<vector<bool>> get_matrix() 
         {
             return matrix_;
         }
@@ -121,7 +121,7 @@ class CreateMatrix
         }
 
     private:
-    vector<vector<int>> matrix_;
+    vector<vector<bool>> matrix_;
     int literals_ = 0;
     int clauses_ = 0;
     bool error_ = true;

@@ -320,7 +320,7 @@ else
 	@echo "Sample is ready - all dependencies have been met"
 endif
 
-sat_to_matrix_mult.o:sat_to_matrix_mult.cpp
+sat_to_matrix_mult.o:sat_to_matrix_mult.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
 sat_to_matrix_mult: sat_to_matrix_mult.o
