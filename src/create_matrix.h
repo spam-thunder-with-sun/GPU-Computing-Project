@@ -48,10 +48,11 @@ class CreateMatrix
                             ss >> c >> line >> literals_ >> clauses_;
                             if(print)
                                 cout << "Data:" << line << " literals:" << literals_ << " clauses:" << clauses_ << endl;
-                            //Alloco la matrice
-                            matrix_.resize(clauses_);
+                            //Alloco le matrici
+                            bool_matrix_.resize(clauses_);
+                            int_matrix_.resize(clauses_);
                             for (int i = 0; i < clauses_; ++i)
-                                matrix_[i].resize(literals_ * 2 + 1);
+                                bool_matrix_[i].resize(literals_ * 2 + 1);
                             break;
                         default:
                             //Leggo il problema
@@ -68,9 +69,15 @@ class CreateMatrix
                                         cout << endl;
                                     row++;
                                 } else if(tmp > 0)
-                                    matrix_[row][tmp] = true;
+                                {
+                                    bool_matrix_[row][tmp] = true;
+                                    int_matrix_[row].push_back(tmp);
+                                }
                                 else if(tmp < 0)
-                                    matrix_[row][(-tmp) + literals_] = true;  
+                                {
+                                    bool_matrix_[row][(-tmp) + literals_] = true;
+                                    int_matrix_[row].push_back(tmp);
+                                } 
                             }
                     }
                 }
@@ -86,9 +93,14 @@ class CreateMatrix
             error_ = false;
         }
 
-        vector<vector<int>> get_matrix() 
+        vector<vector<bool>> get_boolean_matrix() 
         {
-            return matrix_;
+            return bool_matrix_;
+        }
+
+        vector<vector<int>> get_int_matrix() 
+        {
+            return int_matrix_;
         }
 
         int get_literals() 
@@ -111,17 +123,25 @@ class CreateMatrix
             cout << "Literals: " << literals_ << endl;
             cout << "Clauses: " << clauses_ << endl;
             cout << "Matrix:" << endl;
-            for (int i = 0; i < matrix_.size(); ++i) 
+            for (int i = 0; i < bool_matrix_.size(); ++i) 
             {
-                vector<bool> row = matrix_[i];
+                vector<bool> row = bool_matrix_[i];
                 for (int j = 1; j < row.size(); ++j)
-                    cout << matrix_[i][j] << " ";
+                    cout << bool_matrix_[i][j] << " ";
+                cout << endl;
+            }
+            for(int i = 0; i < int_matrix_.size(); ++i)
+            {
+                vector<int> row = int_matrix_[i];
+                for (int j = 0; j < row.size(); ++j)
+                    cout << int_matrix_[i][j] << " ";
                 cout << endl;
             }
         }
 
     private:
-    vector<vector<int>> matrix_;
+    vector<vector<bool>> bool_matrix_;
+    vector<vector<int>> int_matrix_;
     int literals_ = 0;
     int clauses_ = 0;
     bool error_ = true;

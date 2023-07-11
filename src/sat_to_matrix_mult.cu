@@ -38,17 +38,6 @@ bool sat(vector<vector<bool>> &M, vector<bool> &sol)
     return res;
 }
 
-__global__ void sat_kernel(vector<vector<bool>> &M, vector<bool> &sol, bool *res) 
-{
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i < clauses_) 
-    {
-        res[i] = false;
-        for (int j = 1; j < literals_ * 2 + 1 && !res[i]; ++j)
-            res[i] = M[i][j] && sol[j];
-    }
-}
-
 void find_solution (vector<vector<bool>> &M) 
 {
     vector<bool> vec (literals_ * 2 + 1, false);
@@ -82,11 +71,20 @@ void find_solution (vector<vector<bool>> &M)
 //Da testare
 bool copy_to_gpu(vector<vector<int>> &matrix, int literals, int clauses)
 {
-    long nChunksEveryHalfClause = ceil(literals / sizeof(unsigned int));
-    long nChunksEveryClause = nChunksEveryHalfClause * 2;
-    size_t sizeMatrix = nChunksEveryClause * clauses * sizeof(unsigned int);
+    if(matrix.empty())
+        return false;
 
+    int nChunksEveryHalfClause = ceil((float)literals / sizeof(unsigned int));
+    int nChunksEveryClause = nChunksEveryHalfClause * 2;
+    size_t sizeMatrix = nChunksEveryClause * clauses * sizeof(unsigned int);
     unsigned int *matrix_h, *matrix_d;
+
+    /*
+        cout << "nChunksEveryHalfClause: " << nChunksEveryHalfClause << endl;
+        cout << "nChunksEveryClause: " << nChunksEveryClause << endl;
+        cout << "literals: " << literals << endl;
+        cout << "clauses: " << clauses << endl;
+    */
 
     //Alloco il vettore lato host
     matrix_h = (unsigned int*)malloc(sizeMatrix);
@@ -96,22 +94,21 @@ bool copy_to_gpu(vector<vector<int>> &matrix, int literals, int clauses)
         //Inizializzo a tutti 0
         for(int j = 0; j < nChunksEveryClause; ++j)
             matrix_h[nChunksEveryClause * i + j] = 0;
-
         //Setto a 1 i bit corrispondenti
         for(int j = 0; j < matrix[i].size(); ++j)
         {
-            int chunk = matrix[i][j] / nChunksEveryHalfClause;
-            int offset = matrix[i][j] % nChunksEveryHalfClause; //Likely uses the result of the division
+            int chunk = (int)matrix[i][j] / (int)nChunksEveryHalfClause;
+            int offset = (int)matrix[i][j] % (int)nChunksEveryHalfClause; //Likely uses the result of the division
             if(matrix[i][j] > 0)
                 matrix_h[nChunksEveryClause * i + chunk] |= 1 << offset;
             else
                 matrix_h[nChunksEveryClause * i + nChunksEveryHalfClause - chunk ] |= 1 << -offset;
         }
-    }       
+    }  
 
     //Alloco il vettore lato device copiandolo da quello lato host
-    cudaMalloc((void**)&matrix_d, size);
-    cudaMemcpy(matrix_d, matrix_h, size, cudaMemcpyHostToDevice);
+    cudaMalloc((void**)&matrix_d, sizeMatrix);
+    cudaMemcpy(matrix_d, matrix_h, sizeMatrix, cudaMemcpyHostToDevice);
 
     return true;
 }
@@ -119,20 +116,25 @@ bool copy_to_gpu(vector<vector<int>> &matrix, int literals, int clauses)
 
 int main() 
 {
+    cout << "-----------------------------------------------" << endl;
+    cout << endl << "*** Start ***" << endl << endl;
     //input/dimacs/jnh1.cnf
     //input/3sat/uf20-01.cnf
     //input/small.cnf
     //input/tutorial.cnf
-    CreateMatrix *foo = new CreateMatrix("input/small.cnf", true);
-    if (foo->get_error())  return(1);
-    vector<vector<bool>> matrix = foo->get_matrix();
-    literals_ = foo->get_literals();
-    clauses_ = foo->get_clauses();
+    CreateMatrix *matrix = new CreateMatrix("input/small.cnf", true);
+    if (matrix->get_error())  return(1);
+    vector<vector<bool>> bool_matrix = matrix->get_boolean_matrix();
+    vector<vector<int>> int_matrix = matrix->get_int_matrix();
+    literals_ = matrix->get_literals();
+    clauses_ = matrix->get_clauses();
 
-    copy_to_gpu(matrix, literals_, clauses_);
-    find_solution(matrix);
+    find_solution(bool_matrix);
 
-    cout << "Fine" << endl;
+    cout << "Copy to gpu: " << (copy_to_gpu(int_matrix, literals_, clauses_) ? "true" : "false") << endl;
+
+    cout << endl << "*** End ***" << endl;
+    cout << "-----------------------------------------------" << endl;
 
     return 0;
 }
