@@ -6,6 +6,9 @@ using namespace std;
 #include <cmath>
 #include <cuda_runtime.h>
 #include "create_matrix.h"
+#include <bitset>
+
+#define mytype unsigned short
 
 int literals_ = 0;
 int clauses_ = 0;
@@ -68,26 +71,19 @@ void find_solution (vector<vector<bool>> &M)
         cout << "UNSAT!" << endl;
 }
 
-//Da testare
-bool copy_to_gpu(vector<vector<int>> &matrix, int literals, int clauses)
+//Testato
+pair<mytype *, mytype *> copy_to_gpu(vector<vector<int>> &matrix, int literals, int clauses)
 {
     if(matrix.empty())
-        return false;
+        return make_pair(nullptr, nullptr);
 
-    int nChunksEveryHalfClause = ceil((float)literals / sizeof(unsigned int));
+    int nChunksEveryHalfClause = ceil((float)literals / (sizeof(mytype) * 8));
     int nChunksEveryClause = nChunksEveryHalfClause * 2;
-    size_t sizeMatrix = nChunksEveryClause * clauses * sizeof(unsigned int);
-    unsigned int *matrix_h, *matrix_d;
-
-    /*
-        cout << "nChunksEveryHalfClause: " << nChunksEveryHalfClause << endl;
-        cout << "nChunksEveryClause: " << nChunksEveryClause << endl;
-        cout << "literals: " << literals << endl;
-        cout << "clauses: " << clauses << endl;
-    */
+    size_t sizeMatrix = nChunksEveryClause * clauses * (sizeof(mytype));
+    mytype *matrix_h, *matrix_d;
 
     //Alloco il vettore lato host
-    matrix_h = (unsigned int*)malloc(sizeMatrix);
+    matrix_h = (mytype*)malloc(sizeMatrix);
     //Riempio il vettore lato host
     for(int i = 0; i < matrix.size(); ++i)
     {
@@ -97,12 +93,13 @@ bool copy_to_gpu(vector<vector<int>> &matrix, int literals, int clauses)
         //Setto a 1 i bit corrispondenti
         for(int j = 0; j < matrix[i].size(); ++j)
         {
-            int chunk = (int)matrix[i][j] / (int)nChunksEveryHalfClause;
-            int offset = (int)matrix[i][j] % (int)nChunksEveryHalfClause; //Likely uses the result of the division
+            int _value = abs(matrix[i][j]);
+            int offset = (int)(_value-1) % (int)(sizeof(mytype) * 8);
+            int chunk = nChunksEveryHalfClause - 1 - ((int)(_value-1) / (int)(sizeof(mytype) * 8));
             if(matrix[i][j] > 0)
                 matrix_h[nChunksEveryClause * i + chunk] |= 1 << offset;
-            else
-                matrix_h[nChunksEveryClause * i + nChunksEveryHalfClause - chunk ] |= 1 << -offset;
+            else if(matrix[i][j] < 0)
+                matrix_h[nChunksEveryClause * i + nChunksEveryHalfClause + chunk ] |= 1 << offset;
         }
     }  
 
@@ -110,9 +107,35 @@ bool copy_to_gpu(vector<vector<int>> &matrix, int literals, int clauses)
     cudaMalloc((void**)&matrix_d, sizeMatrix);
     cudaMemcpy(matrix_d, matrix_h, sizeMatrix, cudaMemcpyHostToDevice);
 
-    return true;
+    return make_pair(matrix_h, matrix_d);
 }
 
+//Testato
+void printCompressMatrix(mytype *matrix, int literals, int clauses)
+{
+    int nChunksEveryHalfClause = ceil((float)literals / (sizeof(mytype) * 8));
+    int nChunksEveryClause = nChunksEveryHalfClause * 2;
+
+    cout << "Print compress matrix: " << endl;
+    cout << "nChunksEveryHalfClause: " << nChunksEveryHalfClause << endl;
+    cout << "nChunksEveryClause: " << nChunksEveryClause << endl;
+    cout << "literals: " << literals << endl;
+    cout << "clauses: " << clauses << endl;
+    cout << "sizeof(mytype): " << sizeof(mytype) << endl;
+    cout << endl;
+
+    for(int i = 0; i < clauses; ++i)
+    {
+        for(int j = 0; j < nChunksEveryClause; ++j)
+        {
+            bitset<sizeof(mytype) * 8> x(matrix[nChunksEveryClause * i + j]);
+            cout << x << " ";
+            //cout << x << "(" << matrix[nChunksEveryClause * i + j] << ") ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
 
 int main() 
 {
@@ -122,6 +145,7 @@ int main()
     //input/3sat/uf20-01.cnf
     //input/small.cnf
     //input/tutorial.cnf
+    //input/hole6.cnf
     CreateMatrix *matrix = new CreateMatrix("input/small.cnf", true);
     if (matrix->get_error())  return(1);
     vector<vector<bool>> bool_matrix = matrix->get_boolean_matrix();
@@ -129,12 +153,19 @@ int main()
     literals_ = matrix->get_literals();
     clauses_ = matrix->get_clauses();
 
-    find_solution(bool_matrix);
+    //find_solution(bool_matrix);
+    //cout << endl;
 
-    cout << "Copy to gpu: " << (copy_to_gpu(int_matrix, literals_, clauses_) ? "true" : "false") << endl;
+    cout << "Copy to gpu " <<  endl;
+    pair<mytype *, mytype *> ref = copy_to_gpu(int_matrix, literals_, clauses_);
+    printCompressMatrix(ref.first, literals_, clauses_);
 
     cout << endl << "*** End ***" << endl;
     cout << "-----------------------------------------------" << endl;
 
     return 0;
 }
+
+/*
+I dati sono salvati in formato big endian, quindi il bit più significativo è il primo
+*/

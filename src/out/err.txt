@@ -1,2 +1,3 @@
 mkdir: cannot create directory ‘../../../bin’: Permission denied
 make: *** [Makefile:328: sat_to_matrix_mult] Error 1
+srun: error: deeplearning03: task 0: Segmentation fault (core dumped)

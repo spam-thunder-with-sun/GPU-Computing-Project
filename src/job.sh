@@ -6,7 +6,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=1
 #SBATCH --time=00:05:00
-#SBATCH --job-name=SATproject
+#SBATCH --job-name=SATsolver
 #SBATCH --output=out/out.txt
 #SBATCH --error=out/err.txt
 
